@@ -1,0 +1,82 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Employee Viewer";
+    var departments = ViewBag.Departments as List<string>;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+<div class="container mt-4">
+    <h2>Employee List by Department</h2>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="departmentSelect" class="form-label">Select Department:</label>
+            <select id="departmentSelect" class="form-select">
+                <option value="">-- Select --</option>
+                @foreach (var dept in departments)
+                {
+                    <option value="@dept">@dept</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button id="loadBtn" class="btn btn-primary">Load Employees</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-striped" id="employeeTable" style="display: none;">
+        <thead class="table-dark">
+            <tr>
+                <th>EmployeeId</th>
+                <th>FirstName</th>
+                <th>LastName</th>
+                <th>Salary</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $('#loadBtn').click(function () {
+        var department = $('#departmentSelect').val();
+        if (department === "") {
+            alert("Please select a department.");
+            return;
+        }
+
+        $.ajax({
+            url: '/Employee/GetEmployeesByDepartment',
+            type: 'GET',
+            data: { department: department },
+            success: function (data) {
+                var tbody = $('#employeeTable tbody');
+                tbody.empty();
+
+                if (data.length > 0) {
+                    $('#employeeTable').show();
+                    $.each(data, function (i, emp) {
+                        var row = `<tr>
+                            <td>${emp.employeeId}</td>
+                            <td>${emp.firstName}</td>
+                            <td>${emp.lastName}</td>
+                            <td>${emp.salary}</td>
+                        </tr>`;
+                        tbody.append(row);
+                    });
+                } else {
+                    $('#employeeTable').hide();
+                    alert("No employees found for this department.");
+                }
+            },
+            error: function () {
+                alert("Error occurred while fetching employees.");
+            }
+        });
+    });
+</script>
